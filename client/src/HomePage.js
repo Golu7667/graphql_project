@@ -1,10 +1,14 @@
-import React,{useState} from 'react'
+import React,{useState,useEffect} from 'react'
 
 function HomePage() {
    const [name,setName]=useState("Hi")
    const [email,setEmail]=useState("email@gmail.com")
   
    const [isDisabled, setIsDisabled] = useState(true);
+
+   useEffect(()=>{
+      
+   },[])
 
    const toggleDisabled = () => {
      setIsDisabled(!isDisabled);

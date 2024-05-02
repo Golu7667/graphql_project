@@ -8,9 +8,12 @@ const cors=require("cors")
 const bcrypt=require("bcrypt")
 const jwt=require("jsonwebtoken")
 const User=require("./models/userModel")
-
+const cookieParser = require('cookie-parser');
+const app=express()
+app.use(cookieParser());
+app.use(bodyParser.json())
 async function startServer(){
-    const app=express()
+    
     mongoose.connect(process.env.DB_URL,{
         useNewUrlParser:true,
         useUnifiedTopology: true
@@ -23,13 +26,15 @@ async function startServer(){
     const server = new ApolloServer({
         typeDefs: `
           type User {
+            id:ID!
             name: String!
             email: String!
             password: String!
           }
           type AuthData {
-            token: String!
-            user: User!
+            token: String
+            user: User
+            msg:String
           } 
           type Query {
             getUser(token:ID!):User
@@ -48,27 +53,60 @@ async function startServer(){
             }
           },
           Mutation: {
-            register: async (parent, { name, email, password }) => {
+            register: async (parent, { name, email, password }, context) => {
               try {
                 const existingUser = await User.findOne({ email });
-                console.log(parent)
+                console.log(name,email,password)
                 if (existingUser) {
-                  throw new Error('User already exists');
-                }
+                 
+                  const isMatch = await bcrypt.compare(password, existingUser.password)
+                  if(isMatch){
+                    const token = jwt.sign({ userId: existingUser._id }, process.env.SECRET_KEY);
+                   
+                    return {token,user:existingUser}
+                  }else{
+                    console.log("hi")
+                   return {msg:"Password incorrect"};
+                   
+                  }
+                 
+
+                 
+                }else{
                 const hashedPassword = await bcrypt.hash(password, 10);
                 const newUser = new User({ name, email, password: hashedPassword });
                 await newUser.save();
                 const token = jwt.sign({ userId: newUser._id }, process.env.SECRET_KEY);
-                return { token, user: newUser };
+                 return {token,user:newUser};
+                }
+
               } catch (error) {
                 throw new Error(error);
               }
             },
           },
-        }
+        },
+        context: ({ req, res }) => ({ req, res }),
+        plugins: [
+          {
+            requestDidStart(requestContext) {
+              return {
+                async willSendResponse({ response, context }) {
+                  // Set the cookie in the response headers
+                     console.log("bye")
+                  if (context && context.cookie) {
+                    console.log("Hi")
+                    response.http.headers.set('Set-Cookie', context.cookie);
+                  }
+                },
+              };
+            },
+          },
+        ],
       });
     app.use(cors({origin:"*"}))
-    app.use(bodyParser.json())
+   
+    
     await server.start();
     app.use("/graphql",expressMiddleware(server))
     app.listen(8000,()=>console.log("server is connected"))

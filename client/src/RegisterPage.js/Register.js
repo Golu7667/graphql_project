@@ -1,21 +1,64 @@
 import React, { useState } from "react";
+import { gql,useMutation  } from '@apollo/client';
+import { REGISTER_USER } from '../registerUserMutation';
+import {useNavigate} from "react-router-dom"
 
 function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  console.log(name, email, password);
+  const [registerUser, { loading, error, data }] = useMutation(REGISTER_USER);
+  const navigate=useNavigate()
+
+  
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+  
+    if(name==""|| email=="" || password=="" ){
+      alert("Fill all details")
+      
+    }else{
+    
+    try {
+      const result =await registerUser({ variables: { name, email, password } });
+      console.log(result)
+      if(result.data.register.msg=="Password incorrect"){
+        alert("Enter right password")
+      }else{
+      const token=result.data.register.token
+      const expirationDate = new Date();
+      expirationDate.setFullYear(expirationDate.getFullYear() + 1);
+      const cookieString = `cookieName=${token}; expires=${expirationDate.toUTCString()}; path=/home`;
+      document.cookie = cookieString;
+      navigate("/home")
+      }
+
+    } catch (error) {
+      console.error(error.message); // Handle error response
+    }
+    }
+    
+  };
+
+
 
   return (
-    <div class="w-full h-full py-8 sm:px-8  bg-gray-200 pt-16" style={{height:'100vh'}}>
+    <div
+      class="w-full h-full py-8 sm:px-8  bg-gray-200 pt-16"
+      style={{ height: "100vh" }}
+    >
       <div class="mx-auto  italic md:text-xl font-extrabold text-black divide-x">
-         <div class="flex justify-center items-center rounded-lg p-2 text-white"><span class="bg-green-500 p-2 rounded-lg">Effortless Data Management: A GraphQL CRUD Project </span></div>
-         <div class="w-full flex justify-center mt-2">
-         <div className="w-full md:w-1/2 h-2 bg-black  rounded-xl"></div>
-         </div>
+        <div class="flex justify-center items-center rounded-lg p-2 text-white">
+          <span class="bg-green-500 p-2 rounded-lg">
+            Effortless Data Management: A GraphQL CRUD Project{" "}
+          </span>
+        </div>
+        <div class="w-full flex justify-center mt-2">
+          <div className="w-full md:w-1/2 h-2 bg-black  rounded-xl"></div>
+        </div>
       </div>
       <div class="w-full py-8  lg:w-2/4  rounded-lg  mt-6 md:mx-auto bg-cyan-950">
-        <form class="flex justify-center items-center ">
+        <form class="flex justify-center items-center " onSubmit={handleSubmit}>
           <div class="block md:flex justify-center">
             <div class="w-full flex justify-center md:w-1/3  rounded-lg">
               <img
@@ -67,12 +110,13 @@ function Register() {
                 />
               </div>
               <div class=" flex justify-center items-center mt-2">
-                <button class="w-full bg-blue-500 font-mono hover:bg-blue-600 active:bg-blue-700 focus:outline-none focus:ring focus:ring-violet-300 text-white text-xl rounded-md p-2" onClick={() => {
-    // Your function to handle registration
-    console.log("Register button clicked");
-  }}>
-                  Register
+                <button
+                  class="w-full bg-blue-500 font-mono hover:bg-blue-600 active:bg-blue-700 focus:outline-none focus:ring focus:ring-violet-300 text-white text-xl rounded-md p-2"
+                 
+                >{
+                loading? "Processing...":"Register"}
                 </button>
+                
               </div>
             </div>
           </div>

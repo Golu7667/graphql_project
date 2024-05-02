@@ -3,9 +3,12 @@ import './App.css';
 import {BrowserRouter,Routes,Route} from "react-router-dom"
 import Register from "./RegisterPage.js/Register"
 import HomePage from './HomePage';
+import { gql, useQuery } from "@apollo/client";
+
 
 
 function App() {
+
   return (
     <BrowserRouter>
       <Routes>
