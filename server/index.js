@@ -47,10 +47,12 @@ async function startServer(){
         resolvers: {
           Query: {
             getUser: async (_, { token }) => {
-              console.log(id)
+              console.log(token)
               var decoded = jwt.verify(token, process.env.SECRET_KEY);
-              return await User.findOne({ _id: decoded.id }); // Assuming you're using MongoDB and the User model
+              console.log(decoded.userId)
+              return await User.findOne({ _id: decoded.userId }); // Assuming you're using MongoDB and the User model
             }
+            
           },
           Mutation: {
             register: async (parent, { name, email, password }, context) => {

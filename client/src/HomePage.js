@@ -1,14 +1,47 @@
 import React,{useState,useEffect} from 'react'
+import Cookies from 'js-cookie';
+import { gql, useQuery } from "@apollo/client";
+
+const GET_USER = gql`
+  query GetUser($token: ID!) {
+    getUser(token: $token) {
+      email
+      id
+      name
+      password
+    }
+  }
+`;
+const token=Cookies.get('token')
 
 function HomePage() {
-   const [name,setName]=useState("Hi")
-   const [email,setEmail]=useState("email@gmail.com")
+ 
+   const [name,setName]=useState("")
+   const [email,setEmail]=useState("")
   
    const [isDisabled, setIsDisabled] = useState(true);
+   
+   const { loading, error, data } = useQuery(GET_USER, {
+    variables: { token }
+  });
 
-   useEffect(()=>{
-      
-   },[])
+  
+  useEffect(() => {
+    if (data && data.getUser) {
+      setName(data.getUser.name);
+      setEmail(data.getUser.email);
+    }
+  }, [data]);
+
+  // Handle loading state
+  if (loading){ return <p class="flex justify-center font-bold">Loading...</p>;}
+ 
+
+  // Handle error state
+  if (error){
+    return <p class="flex justify-center font-bold border-2 bg-red-600 rounded-lg text-slate-50">Error: {error.message}</p>
+  } 
+   
 
    const toggleDisabled = () => {
      setIsDisabled(!isDisabled);

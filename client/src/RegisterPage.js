@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { gql,useMutation  } from '@apollo/client';
-import { REGISTER_USER } from '../registerUserMutation';
+import { REGISTER_USER } from './registerUserMutation';
 import {useNavigate} from "react-router-dom"
+import Cookies from 'js-cookie';
 
 function Register() {
   const [name, setName] = useState("");
@@ -9,7 +10,12 @@ function Register() {
   const [password, setPassword] = useState("");
   const [registerUser, { loading, error, data }] = useMutation(REGISTER_USER);
   const navigate=useNavigate()
-
+  
+  useEffect(()=>{
+    if(Cookies.get("token")){
+      navigate("/home")
+    }
+  })
   
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,9 +34,9 @@ function Register() {
       const token=result.data.register.token
       const expirationDate = new Date();
       expirationDate.setFullYear(expirationDate.getFullYear() + 1);
-      const cookieString = `cookieName=${token}; expires=${expirationDate.toUTCString()}; path=/home`;
-      document.cookie = cookieString;
-      navigate("/home")
+      Cookies.set('token', token, { expires: 7 });
+      
+      navigate("/home");
       }
 
     } catch (error) {
