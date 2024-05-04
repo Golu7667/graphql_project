@@ -41,7 +41,8 @@ async function startServer(){
           }
           type  Mutation{
             register(name: String!, email: String!, password: String!): AuthData!
-
+            updateUser(id: ID!, name: String, email: String): User!
+            deleteUser(id: ID!): String!
           }
         `,
         resolvers: {
@@ -86,7 +87,40 @@ async function startServer(){
                 throw new Error(error);
               }
             },
+
+            updateUser: async (_, { id, name, email }) => {
+              // Logic to update user information
+              // Example: Assuming you have a database where users are stored
+              const user = await User.findById(id);
+              if (!user) {
+                throw new Error("User not found");
+              }
+              if (name) {
+                user.name = name;
+              }
+              if (email) {
+                user.email = email;
+              }
+              await user.save();
+              return user;
+            },
+            deleteUser: async (_, { id }) => {
+              console.log("delete user")
+              try {
+                  const deletedUser = await User.findByIdAndDelete(id);
+                  if (deletedUser) {
+                      return "deleted";
+                  } else {
+                      return "notfound";
+                  }
+              } catch (error) {
+                  console.error('Error deleting user:', error);
+                  return "notdeleted";
+              }
+          }
+          
           },
+          
         },
         context: ({ req, res }) => ({ req, res }),
         plugins: [

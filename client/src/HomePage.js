@@ -1,6 +1,8 @@
 import React,{useState,useEffect} from 'react'
 import Cookies from 'js-cookie';
-import { gql, useQuery } from "@apollo/client";
+import { gql, useQuery,useMutation } from "@apollo/client";
+import {UPDATE_USER,DELETE_USER} from "./graphqlMutation"
+import { useNavigate } from 'react-router-dom';
 
 const GET_USER = gql`
   query GetUser($token: ID!) {
@@ -18,19 +20,25 @@ function HomePage() {
  
    const [name,setName]=useState("")
    const [email,setEmail]=useState("")
-  
+   const [id,setId]=useState("")
+   const [changeName,setChangeName]=useState("")
+   const [changeEmail,setChangeEmail]=useState("")
    const [isDisabled, setIsDisabled] = useState(true);
-   
+   const [updateUser,{load,err}]=useMutation(UPDATE_USER)
+   const navigate=useNavigate()
    const { loading, error, data } = useQuery(GET_USER, {
     variables: { token }
   });
-
+  console.log(id)
+ const [deleteUser,{deleteloading,deleteerror}]=useMutation(DELETE_USER)
   
   useEffect(() => {
     if (data && data.getUser) {
       setName(data.getUser.name);
       setEmail(data.getUser.email);
+      setId(data.getUser.id)
     }
+    
   }, [data]);
 
   // Handle loading state
@@ -44,8 +52,41 @@ function HomePage() {
    
 
    const toggleDisabled = () => {
-     setIsDisabled(!isDisabled);
+    if(isDisabled==true){
+      setIsDisabled(!isDisabled)
+    }
+    console.log(!isDisabled)
+     if((changeName!="" && changeEmail=="") || (changeName=="" && changeEmail!="") || (isDisabled==false && changeName=="" && changeEmail=="") ){
+      alert("Enter email and Name")
+     
+     }else if(changeName!="" && changeEmail!=""){
+      updateUser({ variables: { id, name:changeName, email:changeEmail } })
+      .then(() => {
+        // Mutation succeeded
+        alert("User updated successfully")
+        console.log('User updated successfully');
+        setIsDisabled(!isDisabled);
+      })
+      .catch((err) => {
+        // Mutation failed
+        console.log("Error updating user")
+        console.error('Error updating user:', err);
+        setIsDisabled(!isDisabled);
+      });
+    
+     }
+    
+     setChangeEmail("")
+     setChangeName("")
    };
+
+   const deleteUserFunction=async()=>{
+      const data=await deleteUser({ variables: { id} })
+      console.log(data)
+      Cookies.remove('token')
+      navigate("/")
+   }
+
   return (
     <div class="w-full  bg-gray-300 pt-16" style={{height:'100vh'}}>
     <div class="flex justify-center items-center  md:text-lg font-extrabold font-sans bg-sky-500 py-2 rounded-lg text-white"><span>Interactive Dashboard: Read, Update, Delete Profiles</span></div>
@@ -67,9 +108,9 @@ function HomePage() {
             <input
               type="text"
               name="name"
-              value={name}
+              value={isDisabled ? name : changeName}
               placeholder="Enter Your Name"
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => setChangeName(e.target.value)}
               disabled={isDisabled}  class=" h-12 mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm placeholder-slate-400
       focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500
       disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200 disabled:shadow-none
@@ -87,9 +128,9 @@ function HomePage() {
             <input
               type="email"
               name="email"
-              value={email}
+              value={isDisabled?email:changeEmail}
               placeholder="Enter Your Email Id"
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => setChangeEmail(e.target.value)}
               disabled={isDisabled}  class=" h-12 mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm placeholder-slate-400
       focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500
       disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200 disabled:shadow-none
@@ -101,9 +142,9 @@ function HomePage() {
          
           <div class=" flex justify-center items-center mt-2 ">
             <button  onClick={toggleDisabled} class="w-full bg-blue-500 font-mono hover:bg-blue-600 active:bg-blue-700 focus:outline-none focus:ring focus:ring-violet-300 text-white text-xl rounded-md p-2 mr-2">
-             Update
+            {isDisabled ? 'Update' : 'Done'}
             </button>
-            <button class="w-full bg-blue-500 font-mono hover:bg-blue-600 active:bg-blue-700 focus:outline-none focus:ring focus:ring-violet-300 text-white text-xl rounded-md p-2">
+            <button onClick={deleteUserFunction} class="w-full bg-blue-500 font-mono hover:bg-blue-600 active:bg-blue-700 focus:outline-none focus:ring focus:ring-violet-300 text-white text-xl rounded-md p-2">
               Delete
             </button>
           </div>

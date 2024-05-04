@@ -1,6 +1,6 @@
 import React, { useState,useEffect } from "react";
 import { gql,useMutation  } from '@apollo/client';
-import { REGISTER_USER } from './registerUserMutation';
+import { REGISTER_USER } from './graphqlMutation';
 import {useNavigate} from "react-router-dom"
 import Cookies from 'js-cookie';
 
