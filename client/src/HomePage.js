@@ -3,17 +3,8 @@ import Cookies from 'js-cookie';
 import { gql, useQuery,useMutation } from "@apollo/client";
 import {UPDATE_USER,DELETE_USER} from "./graphqlMutation"
 import { useNavigate } from 'react-router-dom';
+import { GET_USER } from './graphqlQuery';
 
-const GET_USER = gql`
-  query GetUser($token: ID!) {
-    getUser(token: $token) {
-      email
-      id
-      name
-      password
-    }
-  }
-`;
 const token=Cookies.get('token')
 
 function HomePage() {

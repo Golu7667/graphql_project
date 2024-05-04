@@ -105,7 +105,7 @@ async function startServer(){
               return user;
             },
             deleteUser: async (_, { id }) => {
-              console.log("delete user")
+              console.log("delete user",id)
               try {
                   const deletedUser = await User.findByIdAndDelete(id);
                   if (deletedUser) {
