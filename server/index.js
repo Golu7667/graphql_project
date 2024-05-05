@@ -91,6 +91,7 @@ async function startServer(){
             updateUser: async (_, { id, name, email }) => {
               // Logic to update user information
               // Example: Assuming you have a database where users are stored
+              console.log(name,email)
               const user = await User.findById(id);
               if (!user) {
                 throw new Error("User not found");

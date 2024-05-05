@@ -5,10 +5,10 @@ import {UPDATE_USER,DELETE_USER} from "./graphqlMutation"
 import { useNavigate } from 'react-router-dom';
 import { GET_USER } from './graphqlQuery';
 
-const token=Cookies.get('token')
+
 
 function HomePage() {
- 
+  const token=Cookies.get('token')
    const [name,setName]=useState("")
    const [email,setEmail]=useState("")
    const [id,setId]=useState("")
@@ -22,14 +22,18 @@ function HomePage() {
   });
   console.log(id)
  const [deleteUser,{deleteloading,deleteerror}]=useMutation(DELETE_USER)
-  
-  useEffect(() => {
-    if (data && data.getUser) {
+
+ console.log("id",id,data)
+ 
+ useEffect(() => {
+    if (data && data.getUser && !loading) {
       setName(data.getUser.name);
       setEmail(data.getUser.email);
       setId(data.getUser.id)
     }
-    
+    if(!Cookies.get("token")){
+      navigate("/")
+    }
   }, [data]);
 
   // Handle loading state
